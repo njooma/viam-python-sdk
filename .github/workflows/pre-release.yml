@@ -1,0 +1,151 @@
+name: Pre-Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The type of version bump. Select "-s" for no version change. See https://python-poetry.org/docs/cli/#version'
+        type: choice
+        required: true
+        default: 'patch'
+        options:
+        - major
+        - minor
+        - patch
+        - premajor
+        - preminor
+        - prepatch
+        - prerelease
+        - '-s'
+
+jobs:
+  prepare:
+    # if: github.repository_owner == 'viamrobotics' && github.ref == 'refs/heads/main'
+    # runs-on: [self-hosted, x64]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/viamrobotics/canon:amd64
+    outputs:
+      sha: ${{ steps.commit.outputs.commit_long_sha }}
+      version: ${{ steps.bump_version.outputs.version }}
+    steps:
+      # - name: Check if organization member
+      #   id: is_organization_member
+      #   uses: jamessingleton/is-organization-member@1.0.1
+      #   with:
+      #     organization: viamrobotics
+      #     username: ${{ github.actor }}
+      #     token:  ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: cancelling
+      #   uses: andymckay/cancel-action@0.2
+      #   if: |
+      #     steps.is_organization_member.outputs.result == 'false'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.REPO_READ_TOKEN }}
+
+      - name: Install Package
+        run: poetry install -v
+
+      - name: Clean Format Test
+        run: make clean better_imports format test
+
+      - name: Bump Version
+        id: bump_version
+        run: |
+          poetry version ${{ inputs.version }}
+          echo "SDK_VERSION=$(poetry version -s)" >> $GITHUB_ENV
+          echo "::set-output name=version::$(poetry version -s)"
+
+      - name: Create RC Branch
+        uses: peterjgrainger/action-create-branch@v2.0.1
+        with:
+          branch: rc-${{ env.SDK_VERSION }}
+
+      - name: Checkout RC Branch
+        uses: actions/checkout@v3
+        with:
+          ref: rc-${{ env.SDK_VERSION }}
+
+      - name: Commit + Push
+        id: commit
+        uses: EndBug/add-and-commit@v9.0.0
+        with:
+          default_author: github_actions
+          message: Bumping version to v${{ env.SDK_VERSION }} [skip ci]
+
+  # build:
+  #   needs: prepare
+  #   if: github.repository_owner == 'viamrobotics' && github.ref == 'refs/heads/main'
+  #   runs-on: [self-hosted, x64]
+  #   container:
+  #     image: ghcr.io/viamrobotics/canon:amd64
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - arch: macosx_x86_64
+  #           ext: dylib
+  #           whl: macosx_10_16_x86_64
+  #         - arch: macosx_arm64
+  #           ext: dylib
+  #           whl: macosx_11_0_arm64
+  #         - arch: linux_aarch64
+  #           ext: so
+  #           whl: manylinux2014_aarch64
+  #         - arch: linux_x86_64
+  #           ext: so
+  #           whl: manylinux2014_x86_64
+  #         - arch: linux_armv6l
+  #           ext: so
+  #           whl: linux_armv6l
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: ${{ needs.prepare.outputs.sha }}
+
+  #     - name: Install Poetry
+  #       uses: snok/install-poetry@v1
+
+  #     - name: Install package
+  #       run: poetry install
+
+  #     - name: Download binary
+  #       run: curl -sL -o src/viam/rpc/libviam_rust_utils.${{ matrix.ext }} https://github.com/viamrobotics/rust-utils/releases/latest/download/libviam_rust_utils-${{ matrix.arch }}.${{ matrix.ext }}
+
+  #     - name: Build
+  #       run: poetry build -f wheel
+
+  #     - name: Rename
+  #       run: mv dist/viam_sdk-$(poetry run python -c "import viam; print(viam.__version__)")-py3-none-any.whl dist/viam_sdk-$(poetry run python -c "import viam; print(viam.__version__)")-py3-none-${{ matrix.whl }}.whl
+
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: dist
+  #         path: dist
+
+  # release:
+  #   needs: [prepare, build]
+  #   if: github.repository_owner == 'viamrobotics' && github.ref == 'refs/heads/main'
+  #   runs-on: [self-hosted, x64]
+  #   container:
+  #     image: ghcr.io/viamrobotics/canon:amd64
+
+  #   steps:
+  #     - uses: actions/download-artifact@v3
+
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v1
+  #       with:
+  #         tag_name: v${{ needs.prepare.outputs.version }}
+  #         files: dist/*
+  #         draft: true
+  #         prerelease: ${{ contains(inputs.version, 'pre') }}
+  #         fail_on_unmatched_files: true

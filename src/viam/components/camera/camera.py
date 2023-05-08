@@ -51,7 +51,7 @@ class Camera(ComponentBase):
         Get the next point cloud from the camera. This will be
         returned as bytes with a mimetype describing
         the structure of the data. The consumer of this call
-        should encode the bytes into the formatted suggested
+        should decode the bytes into the formatted suggested
         by the mimetype.
 
         To deserialize the returned information into a numpy array, use the Open3D library.
