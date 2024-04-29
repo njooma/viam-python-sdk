@@ -98,13 +98,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ needs.prepare.outputs.rc_version }}
-          files: dist/*
+          files: viam_sdk-*
           draft: true
           prerelease: true
           fail_on_unmatched_files: true
