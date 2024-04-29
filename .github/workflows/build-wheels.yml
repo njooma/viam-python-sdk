@@ -36,14 +36,12 @@ jobs:
           #   ext: so
           #   whl: linux_armv7l
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-      - name: Dump job context
-        env:
-          JOB_CONTEXT: ${{ toJson(job) }}
-        run: echo "$JOB_CONTEXT"
+      - name: Checkout Code
+        run: echo "${{ inputs.branch }}"
+        if: ${{ inputs.branch }}
+      - name: Checkout Code
+        run: echo "NO BRANCH"
+        if: ${{ !inputs.branch }}
 
       # - name: Checkout Code
       #   uses: actions/checkout@v4
