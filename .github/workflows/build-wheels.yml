@@ -37,12 +37,12 @@ jobs:
             whl: linux_armv7l
     steps:
       - name: Checkout Code - Call
-        use: actions/checkout@v4
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
         if: ${{ inputs.branch }}
       - name: Checkout Code - Dispatch
-        use: actions/checkout@v4
+        uses: actions/checkout@v4
         if: ${{ !inputs.branch }}
 
       - name: Setup Python
