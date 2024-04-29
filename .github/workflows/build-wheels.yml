@@ -42,7 +42,7 @@ jobs:
           ref: ${{ inputs.branch }}
         if: ${{ inputs.branch }}
       - name: Checkout Code - Dispatch
-        run: actions/checkout@v4
+        use: actions/checkout@v4
         if: ${{ !inputs.branch }}
 
       - name: Setup Python
