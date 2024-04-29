@@ -25,7 +25,7 @@ jobs:
         run: poetry install --all-extras
 
       - name: Clean Format Test
-        run: make clean better_imports format test
+        run: make clean format typecheck test
 
       - name: Bump Version
         id: bump_version
