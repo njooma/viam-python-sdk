@@ -86,25 +86,26 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build:
-    uses: ./.github/workflows/build-wheels.yml
     needs: prepare
+    # if: github.repository_owner == 'viamrobotics'
+    uses: ./.github/workflows/build-wheels.yml
     with:
       branch: rc-${{ needs.prepare.outputs.version }}
 
-  # release:
-  #   needs: [prepare, build]
-  #   if: github.repository_owner == 'viamrobotics'
-  #   runs-on: ubuntu-latest
+  release:
+    needs: [prepare, build]
+    # if: github.repository_owner == 'viamrobotics'
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - uses: actions/download-artifact@v3
+    steps:
+      - uses: actions/download-artifact@v3
 
-  #     - name: Release
-  #       uses: softprops/action-gh-release@v1
-  #       with:
-  #         tag_name: v${{ needs.prepare.outputs.rc_version }}
-  #         files: dist/*
-  #         draft: true
-  #         prerelease: true
-  #         fail_on_unmatched_files: true
-  #         target_commitish: rc-${{ needs.prepare.outputs.version }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.prepare.outputs.rc_version }}
+          files: dist/*
+          draft: true
+          prerelease: true
+          fail_on_unmatched_files: true
+          target_commitish: rc-${{ needs.prepare.outputs.version }}
