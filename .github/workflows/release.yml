@@ -63,11 +63,11 @@ jobs:
           pr_body: This is an auto-generated PR to merge the rc branch back into main upon successful release.
 
   build:
-    needs: prepare
-    if: github.repository_owner == 'viamrobotics' && startsWith(github.ref_name, 'rc-')
     uses: ./.github/workflows/build-wheels.yml
     with:
       branch: rc-${{ needs.prepare.outputs.version }}
+    needs: prepare
+    if: github.repository_owner == 'viamrobotics' && startsWith(github.ref_name, 'rc-')
 
   release:
     needs: [prepare, build]
