@@ -68,7 +68,7 @@ jobs:
 
       - name: Rename
         run: |
-          echo "WHL_NAME=viam_sdk-$(poetry run python -c "import viam; print(viam.__version__)")-py3-none-${{ matrix.whl }}.whl" >> $GITHUB_ENV
+          echo "WHL_NAME=viam_sdk-$(poetry run python -c 'import viam; print(viam.__version__)')-py3-none-${{ matrix.whl }}.whl" >> $GITHUB_ENV
           mv dist/viam_sdk-$(poetry run python -c "import viam; print(viam.__version__)")-py3-none-any.whl dist/${{ env.WHL_NAME }}
 
       - name: Upload artifacts
