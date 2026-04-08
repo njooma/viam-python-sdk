@@ -20,9 +20,9 @@ jobs:
       - name: Download Release
         uses: robinraju/release-downloader@v1
         with:
-          fileName: "viam_sdk.*.whl"
+          fileName: "*.whl"
           out-file-path: "dist/"
-          tag: tags/${{ env.VERSION }}
+          tag: ${{ env.VERSION }}
           tarBall: false
           zipBall: false
 
@@ -45,24 +45,24 @@ jobs:
         uses: slackapi/slack-github-action@v3
         if: ${{ !contains(env.VERSION, 'rc') && !contains(env.VERSION, 'a') && !contains(env.VERSION, 'b')}}
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": "${{ env.VERSION }} was released.\n${{ github.event_name == 'workflow_dispatch' && steps.get_release.outputs.html_url || github.event.release.html_url }}",
               "username": "Python SDK",
               "icon_url": "https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/community/logos/python-logo-only.png"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Notify Slack on Failure
         uses: slackapi/slack-github-action@v3
         if: ${{ failure() }}
         with:
+          webhook: ${{ secrets.SLACK_TEAM_SDK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": "Failed to publish Python SDK",
               "username": "Python SDK",
               "icon_url": "https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/community/logos/python-logo-only.png"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TEAM_SDK_WEBHOOK_URL }}
